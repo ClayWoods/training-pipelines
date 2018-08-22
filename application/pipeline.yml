@@ -69,17 +69,36 @@ jobs:
   - put: version
     params: {file: version/version}
 
-# - name: deploy-dev
-#    serial_groups: [version]
-#   plan:
-#   - aggregate:
-#     - get: artifact
-#       passed: [build]
-#     - get: app-source
-#     - get: version
-#       passed: [build]
-#     - get: pipelines
-
+#!!!!!!!!!!!!!!!!!!!!!!!!!!
+- name: deploy-dev
+  serial_groups: [version]
+  plan:
+  - aggregate:
+    - get: artifact
+      trigger: true
+      passed: [build]
+    - get: app-source #may not need this
+    - get: version
+      passed: [build]
+    - get: pipelines
+  - task: blueGreen
+    file: pipelines/cf/tasks/blue-green-deploy.yml
+    params:
+      APP_NAME: ((app-name))
+      CF_HOSTNAME: ((cf-dev-hostname))
+      CF_MANIFEST: ((cf-dev-manifest))
+      CF_API: ((cf-dev-api))
+      CF_DOMAIN: ((cf-dev-domain))
+      CF_SPACE: ((cf-dev-space))
+      CF_ORG: ((cf-dev-org))
+      CF_PWD: ((cf-password))
+      CF_USER: ((cf-user))
+      
+#  - put: artifact
+#    params:
+#      file: build/*
+#  - put: version
+#    params: {file: version/version}
 
 - name: major
   serial_groups: [version]
